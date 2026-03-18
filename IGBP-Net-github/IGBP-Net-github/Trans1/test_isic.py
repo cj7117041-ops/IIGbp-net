@@ -100,8 +100,7 @@ if __name__ == '__main__':
     if opt.dataset == "--dataset":
         img_path = opt.root + "../test/images/*"
         input_paths = glob.glob(img_path)  # sorted(glob.glob(img_path))
-        # glob.glob(img_path) 返回该路径模式的所有文件路径，并以列表的形式返回
-        # sorted() 用来对返回的文件路径列表进行排序，按照字母顺序对文件路径进行升序排序。排序后的结果作为最终的输出
+
         depth_path = opt.root + "../test/masks/*"
         target_paths = glob.glob(depth_path)  # sorted(glob.glob(depth_path))
     elif opt.dataset == "--dataset":
