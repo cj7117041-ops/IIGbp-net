@@ -17,7 +17,7 @@ device = torch.device("cuda:0")
 
 
 def structure_loss(pred, mask):
-    weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)  # 增加边界区域和目标的权重
+    weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)  
     # weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask) + 2 * mask
     wbce = F.binary_cross_entropy_with_logits(pred, mask, reduction='none')
     wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
@@ -29,7 +29,7 @@ def structure_loss(pred, mask):
     return (wbce + wiou).mean()
 
 def structure_loss2(pred, mask):
-    weit = 1 + 5 * mask  # 增加边界区域和目标的权重
+    weit = 1 + 5 * mask  
     # weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask) + 2 * mask
     wbce = F.binary_cross_entropy_with_logits(pred, mask, reduction='none')
     wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
@@ -141,7 +141,7 @@ def test(val_loader, model, path):
             res1 = res1.sigmoid().data.cpu().numpy().squeeze()
 
             gt = gt.data.cpu().numpy().squeeze()
-            gt = 1. * (gt > 0.5)  # 会使得大于0.5的像素点为1，其余的为0.
+            gt = 1. * (gt > 0.5)  
             res1 = 1. * (res1 > 0.5)
 
             MAE = np.abs(gt - res1).mean()
