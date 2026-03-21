@@ -1,0 +1,100 @@
+import os
+import numpy as np
+from shutil import copy
+from sklearn.model_selection import train_test_split
+
+
+def make_dir(dir_path):
+    """
+    Create a directory if it does not already exist.
+    """
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+
+def split_ids(len_ids, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
+    """
+    Generate split indices for training, testing, and validation sets.
+    """
+    # Calculate the combined proportion for validation and testing
+    test_val_size = val_ratio + test_ratio
+
+    # Split the dataset into Train and (Test + Val)
+    train_indices, test_val_indices = train_test_split(
+        np.arange(len_ids),
+        test_size=test_val_size,
+        random_state=42  # Random seed ensures reproducibility
+    )
+
+    # Split the (Test + Val) subset into Test and Val
+    val_relative_ratio = val_ratio / test_val_size
+    test_indices, val_indices = train_test_split(
+        test_val_indices,
+        test_size=val_relative_ratio,
+        random_state=42
+    )
+
+    return train_indices, test_indices, val_indices
+
+
+if __name__ == '__main__':
+    # =========================================================
+    # 1. Directory Configurations (Modify these paths)
+    # =========================================================
+    # Define the root directory of your original dataset
+    original_data_root = r'./path_to_your_original_dataset'
+
+    # Define sub-directories for images and masks (labels)
+    original_images_dir = os.path.join(original_data_root, 'Original')  # e.g., 'images' or 'Original'
+    original_masks_dir = os.path.join(original_data_root, 'Ground Truth')  # e.g., 'masks' or 'Ground Truth'
+
+    # Define the root directory where the split dataset will be saved
+    save_root = r'./dataset/Custom_Dataset_Split'
+
+    # =========================================================
+    # 2. Create Target Directories (Train / Val / Test)
+    # =========================================================
+    for split in ['train', 'val', 'test']:
+        make_dir(os.path.join(save_root, split, 'images'))
+        make_dir(os.path.join(save_root, split, 'masks'))
+
+    # =========================================================
+    # 3. Retrieve Files and Generate Split Indices
+    # =========================================================
+    # List all files in the image and mask directories
+    images_list = sorted(os.listdir(original_images_dir))
+    masks_list = sorted(os.listdir(original_masks_dir))
+
+    num_images = len(images_list)
+    print(f"Total images found: {num_images}. Starting the split...")
+
+    # Generate the indices (80% train, 10% val, 10% test by default)
+    train_idx, test_idx, val_idx = split_ids(num_images)
+
+    # =========================================================
+    # 4. Copy Files to their Respective Directories
+    # =========================================================
+    for index, image_name in enumerate(images_list):
+        # Assumes the mask file has the exact same name as the image file
+        mask_name = image_name
+
+        src_image_path = os.path.join(original_images_dir, image_name)
+        src_mask_path = os.path.join(original_masks_dir, mask_name)
+
+        # Route the file to the correct dataset split based on its index
+        if index in train_idx:
+            split_folder = 'train'
+        elif index in test_idx:
+            split_folder = 'test'
+        else:
+            split_folder = 'val'
+
+        # Define destination paths
+        dst_image_path = os.path.join(save_root, split_folder, 'images')
+        dst_mask_path = os.path.join(save_root, split_folder, 'masks')
+
+        # Copy the image and corresponding mask to the new folder
+        copy(src_image_path, dst_image_path)
+        copy(src_mask_path, dst_mask_path)
+
+    print("Processing and dataset splitting done!")
