@@ -46,6 +46,14 @@ dataset/
 
 > Make sure to update the `--data_path` argument to point to your dataset.
 
+
+## Dataset Divide
+The code for dataset division is located in the "Dataset Divide.py" file.
+Modify the dataset path by yourself
+
+## Boundary GT
+The related code for the boundary GT is located in the "MyTest.py" file.
+
 ## Pretrained Weights
 
 This project uses `pvt_v2_b3.pth` as pretrained weights.Provide pre-training for this model. You can download it from the official repository:
@@ -57,7 +65,7 @@ Place the weights in the `pretrained/` folder or update the `--pretrained_path` 
 ## Training
 
 ```bash
-python train.py --data_path /path/to/your/dataset 
+python train_isic1.py --data_path /path/to/your/dataset 
 ```
 
 - `--data_path`: path to your dataset
