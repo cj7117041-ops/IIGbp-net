@@ -9,19 +9,28 @@ import glob
 from utils.dataloaders import get_dataloaders
 from lib.MoXing import IGBP
 
-def mean_spc_np(y_true, y_pred, **kwargs):
+# ==========================================
+def calculate_bootstrap_ci(data, n_bootstraps=1000, ci_level=0.95):
     """
-    compute mean iou for binary segmentation map via numpy
+    Calculate the 95% confidence interval for the given data list
     """
-    axes = (0, 1)
-    intersection = np.sum(np.abs((1-y_pred) * (1-y_true)), axis=axes)
-    mask_sum = np.sum(np.abs(1-y_true), axis=axes)
+    data = np.array(data)
+    n = len(data)
+    bootstrapped_means = []
 
-    smooth = .001
-    spc = (intersection + smooth) / (mask_sum + smooth)
-    if intersection == 0:
-        spc = 0
-    return spc
+    np.random.seed(42)
+
+    for _ in range(n_bootstraps):
+        sample = np.random.choice(data, size=n, replace=True)
+        bootstrapped_means.append(np.mean(sample))
+
+    alpha = 1.0 - ci_level
+    lower_bound = np.percentile(bootstrapped_means, 100 * (alpha / 2))
+    upper_bound = np.percentile(bootstrapped_means, 100 * (1 - alpha / 2))
+
+    mean_val = np.mean(data)
+    return mean_val, lower_bound, upper_bound
+# ==========================================
 
 def mean_rec_np(y_true, y_pred, **kwargs):
     """
@@ -138,8 +147,6 @@ if __name__ == '__main__':
     iou_bank = []
     prec_bank = []
     rec_bank = []
-    spc_bank = []
-    MAE_bank = []
     acc_bank = []
 
     for i, pack in enumerate(test_loader):
@@ -148,10 +155,7 @@ if __name__ == '__main__':
         image = image.cuda()
 
         with torch.no_grad():
-              # P1, P2 = model(image)
-              # res = F.upsample(P1 + P2, size=(352, 352), mode='bilinear', align_corners=False)
-              pred = model(image)
-        res = pred
+             res, _, _, _, boundary= model(image)
 
 
         res = res.sigmoid().data.cpu().numpy().squeeze()
@@ -164,8 +168,6 @@ if __name__ == '__main__':
         iou = mean_iou_np(gt, res)
         prec = mean_prec_np(gt, res)
         rec = mean_rec_np(gt, res)
-        spc = mean_spc_np(gt, res)
-        MAE = np.abs(gt - res).mean()
         acc = np.sum(res == gt) / (res.shape[0]*res.shape[1])
 
         acc_bank.append(acc)
@@ -173,8 +175,28 @@ if __name__ == '__main__':
         iou_bank.append(iou)
         prec_bank.append(prec)
         rec_bank.append(rec)
-        spc_bank.append(spc)
-        MAE_bank.append(MAE)
 
-    print('Dice: {:.4f}, IoU: {:.4f}, Prec: {:.4f}, Rec: {:.4f},  Spc: {:.4f},  MAE: {:.4f}, Acc: {:.4f}'.
-        format(np.mean(dice_bank), np.mean(iou_bank), np.mean(prec_bank), np.mean(rec_bank), np.mean(spc_bank), np.mean(MAE_bank), np.mean(acc_bank)))
+   print('Raw Mean -> Dice: {:.4f}, IoU: {:.4f}, Prec: {:.4f}, Rec: {:.4f}, Acc: {:.4f}'.
+          format(np.mean(dice_bank), np.mean(iou_bank), np.mean(prec_bank), np.mean(rec_bank), np.mean(acc_bank)))
+   print("\n" + "=" * 50)
+
+    # Calculate the confidence interval of Dice
+    mean_dice, ci_lower_dice, ci_upper_dice = calculate_bootstrap_ci(dice_bank)
+    margin_dice = (ci_upper_dice - mean_dice) * 100
+
+    # Calculate the confidence interval of IOU
+    mean_iou, ci_lower_iou, ci_upper_iou = calculate_bootstrap_ci(iou_bank)
+    margin_iou = (ci_upper_iou - mean_iou) * 100
+
+    # Calculate the confidence interval of Prec
+    mean_prec, ci_lower_prec, ci_upper_prec = calculate_bootstrap_ci(prec_bank)
+    margin_prec = (ci_upper_prec - mean_prec) * 100
+
+    # Calculate the confidence interval of rec
+    mean_rec, ci_lower_rec, ci_upper_rec = calculate_bootstrap_ci(rec_bank)
+    margin_rec = (ci_upper_rec - mean_rec) * 100
+
+    print(f"Dice: {mean_dice * 100:.2f} ± {margin_dice:.2f}")
+    print(f"IoU:  {mean_iou * 100:.2f} ± {margin_iou:.2f}")
+    print(f"prec: {mean_prec * 100:.2f} ± {margin_prec:.2f}")
+    print(f"rec:  {mean_rec * 100:.2f} ± {margin_rec:.2f}")
