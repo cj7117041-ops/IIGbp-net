@@ -14,7 +14,7 @@ IGBP-Net is a PyTorch-based deep learning project for image processing tasks (mo
 - Python >= 3.8
 - PyTorch >= 1.10
 - CUDA >= 11.0 (optional, for GPU support)
-
+- .....
 
 ## Dataset Preparation
 
@@ -73,13 +73,13 @@ python train_isic1.py --data_path /path/to/your/dataset
 Use `--help` to see additional training options:
 
 ```bash
-python train.py --help
+python train_isic1.py --help
 ```
 
 ## Testing
 
 ```bash
-python test.py --data_path /path/to/your/dataset --model_path /path/to/saved_model.pth
+python test_isic1.py --data_path /path/to/your/dataset --model_path /path/to/saved_model.pth
 ```
 
 - `--model_path`: path to the trained model weights
