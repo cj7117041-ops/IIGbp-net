@@ -966,16 +966,13 @@ class IGBP(nn.Module):
         f2 = F.interpolate(x_8x, scale_factor=4, mode='bilinear', align_corners=True)
         f_saliency = F.interpolate(saliency_map, scale_factor=4, mode='bilinear', align_corners=True)
 
-        out1 = F.interpolate(out1, scale_factor=4, mode='bilinear', align_corners=True)
-        out2 = F.interpolate(out2, scale_factor=4, mode='bilinear', align_corners=True)
-        out3 = F.interpolate(out3, scale_factor=4, mode='bilinear', align_corners=True)
-        out4 = F.interpolate(out4, scale_factor=4, mode='bilinear', align_corners=True)
-        out5 = F.interpolate(out5, scale_factor=4, mode='bilinear', align_corners=True)
+        # out1 = F.interpolate(out1, scale_factor=4, mode='bilinear', align_corners=True)
+        # out2 = F.interpolate(out2, scale_factor=4, mode='bilinear', align_corners=True)
+        # out3 = F.interpolate(out3, scale_factor=4, mode='bilinear', align_corners=True)
+        # out4 = F.interpolate(out4, scale_factor=4, mode='bilinear', align_corners=True)
+        # out5 = F.interpolate(out5, scale_factor=4, mode='bilinear', align_corners=True)
 
-        # x = torch.cat([f2, f3, f4], dim=1)
-        # x = self.final(x)
 
-        # return f2, out1, out2, out3, out4, out5, x_boundary
         return f2, f3, f4, f_saliency, x_boundary
 
 
